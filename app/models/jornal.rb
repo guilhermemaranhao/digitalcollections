@@ -34,18 +34,21 @@ class Jornal
     conteudo = Jornal.extrair_conteudo_arquivo caminho_arquivo
     client = Jornal.new
 
-    diretorio = Rails.root << "/arquivos/jornais/thumbs/"
+    diretorio_relativo = "arquivos/jornais/thumbs/"
     nome_thumbnail = File.basename(caminho_arquivo, File.extname(caminho_arquivo)) << "_thumbnail.png"
-    caminho_thumbnail = diretorio << nome_thumbnail
+    caminho_relativo = diretorio_relativo << nome_thumbnail
 
     novo_jornal = {
         ano: ano,
         caminho_arquivo: caminho_arquivo,
-        caminho_thumbnail: caminho_thumbnail,
+        caminho_thumbnail: caminho_relativo,
         conteudo: conteudo
     }
 
-    stdout_thumbnail = `convert #{caminho_arquivo} -thumbnail 120x90 #{caminho_thumbnail}`
+    diretorio_absoluto = File.dirname(caminho_arquivo)
+    caminho_completo_absoluto = diretorio_absoluto << nome_thumbnail
+
+    stdout_thumbnail = `convert #{caminho_arquivo} -thumbnail 120x90 #{caminho_completo_absoluto}`
 
     p client.index index: 'museu_digital', type: 'jornal', body: novo_jornal
 
