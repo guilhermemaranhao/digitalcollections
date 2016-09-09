@@ -1,0 +1,31 @@
+<h1>Bem-vindo ao Museu Digital</h1>
+<div>
+  <p style="padding-right: 30px; padding-left: 30px">
+<div class="col sm5">
+  Ano
+  <br>
+<% (0..@agregacoes['ano']['buckets'].length-1).each do |i|%>
+  <a href="jornals?termo=<%=@termo%>&ano=<%=@agregacoes['ano']['buckets'][i]['key']%>"><%= @agregacoes['ano']['buckets'][i]['key'] %></a> (<%= @agregacoes['ano']['buckets'][i]['doc_count'] %>)
+      <br>
+<% end %>
+<% if @ano_selecionado %>
+  <a href="jornals?termo=<%=@termo%>">Refazer</a>
+<% end %>
+</div>
+  <br>
+  <br>
+<div class="col sm5">
+<% (0..@jornais['hits'].length-1).each do |i| %>
+      <span><a href="jornals/<%=@jornais['hits'][i]['_source']['_id']%>"><img src="<%=@jornais['hits'][i]['_source']['caminho_thumbnail'] %>"></a></span>
+      <span>Ano: <%= @jornais['hits'][i]['_source']['ano']%></span>
+      <br>
+    <% (0..@jornais['hits'][i]['highlight']['conteudo'].length-1).each do |j| %>
+        <%= @jornais['hits'][i]['highlight']['conteudo'][j] %>
+
+        <br>
+        <br>
+    <% end %>
+<% end %>
+</div>
+  </p>
+</div>
