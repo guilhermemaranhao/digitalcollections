@@ -34,8 +34,8 @@ class Jornal
     conteudo = Jornal.extrair_conteudo_arquivo caminho_arquivo
     client = Jornal.new
 
-    diretorio = File.dirname(caminho_arquivo)
-    nome_thumbnail = File.basename(caminho_arquivo, File.extname(caminho_arquivo)) << "_thumbnail"
+    diretorio = Rails.root << "/arquivos/jornais/thumbs/"
+    nome_thumbnail = File.basename(caminho_arquivo, File.extname(caminho_arquivo)) << "_thumbnail.png"
     caminho_thumbnail = diretorio << nome_thumbnail
 
     novo_jornal = {
@@ -45,11 +45,10 @@ class Jornal
         conteudo: conteudo
     }
 
-    stdout_thumbnail = `convert -size 10x10 #{caminho_arquivo} #{caminho_thumbnail}`
+    stdout_thumbnail = `convert #{caminho_arquivo} -thumbnail 120x90 #{caminho_thumbnail}`
 
-    if stdout_thumbnail.present?
-      p client.index index: 'museu_digital', type: 'jornal', body: novo_jornal
-    end
+    p client.index index: 'museu_digital', type: 'jornal', body: novo_jornal
+
   end
 
   def self.pesquisar termo, options={}
@@ -136,7 +135,8 @@ class Jornal
   end
 
   def self.extrair_conteudo_arquivo caminho_do_arquivo
-    stdout = `java -jar lib/tika/tika-app-1.12.jar -t #{caminho_do_arquivo}`
+    #stdout = `java -jar lib/tika/tika-app-1.12.jar -t #{caminho_do_arquivo}`
+    stdout = `tesseract #{caminho_do_arquivo} stdout`
     conteudo_formatado = stdout.gsub(/[\n\t\r]/m, ' ').gsub(/\s+/m, ' ').strip
     return conteudo_formatado
   end

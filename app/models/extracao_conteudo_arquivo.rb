@@ -2,37 +2,19 @@
 # java -Xmx4024m -cp /opt/tika:/opt/tika/custom-properties:/opt/tika/custom-properties/jbig2_1.4.jar:/opt/tika/tika-server-1.13.jar:/opt/tika/custom-prorties/org/apache/tika/parser/ocr/TesseractOCRConfig.properties:/opt/tika/custom-properties/org/apache/tika/parser/pdf/PDFParser.properties org.apache.tika.server.TikaServerCli --host=0.0.0.0  --port=9998
 
 class ExtracaoConteudoArquivo
-  extend Resque::Plugins::Retry
-  Resque::Failure::MultipleWithRetrySuppression.classes = [Resque::Failure::Redis]
-  Resque::Failure.backend = Resque::Failure::MultipleWithRetrySuppression
-  @queue = :extracao_conteudo_arquivo
-  @retry_limit = 0 # default: 1
-  @retry_delay = 0 # default: 0
 
-  def self.perform(id_objeto_tramitacao, data_hora)
+  def self.extrair(caminho_arquivo)
 
-    puts id_objeto_tramitacao
-
-    obj = Documento::ObjetoTramitacao.find(id_objeto_tramitacao)
-    ids_arquivos = Array.new
-    obj.andamentos.each do |andamento|
-      andamento.arquivos_anexos.each do |arq|
-        ids_arquivos << arq.id
-      end
-    end
-    if ids_arquivos.present? && id_objeto_tramitacao.present?
+    if caminho_arquivo.present?
       tika_app_path = File.join(Rails.root, 'lib', 'tika', 'tika-app-1.12.jar')
       cleaner = File.join(Rails.root, 'lib', 'tika', 'textcleaner')
       tika_custom_classpath = File.join(Rails.root, 'lib', 'tika', 'custom-properties')
       java_home = CONF['java_home']
       ENV['PATH'] = "#{java_home}/bin:#{ENV['PATH']}"
       if File.exists?(tika_app_path)
-        ids_arquivos.each do |id_arquivo|
           caminho_do_arquivo_tiff = ''
-          arquivo = Documento::Arquivo.find(id_arquivo)
-          if arquivo.present? && !arquivo.processado
             conteudo_do_arquivo = ''
-            caminho_do_arquivo = arquivo.caminho_arquivo
+            caminho_do_arquivo = caminho_arquivo
 
 
             #COPIANDO PARA PASTA TEMPORÁRIA, PQ NEM SEMPRE O PROGRAMA CONSEGUE LER
@@ -52,22 +34,8 @@ class ExtracaoConteudoArquivo
 
               begin
 
-                #Seleção randonica do servidor do tika para fazer extração de texto dos arquivos
-                server = ''
-                rand_i = rand(100)
-                if rand_i<0
-                  server = 'http://santiagohmg:9998'
-                elsif rand_i < 0
-                  server = 'http://vm-lnx-0020:9998'
-                elsif rand_i < 19
-                  server = 'http://10.234.10.248:9998'
-                elsif rand_i < 46
-                  server = 'http://10.234.10.249:9998'
-                elsif rand_i < 73
-                  server = 'http://10.234.10.247:9998'
-                else
-                  server = 'http://10.234.10.246:9998'
-                end
+                server = 'http://0.0.0.0:9998'
+
                 puts 'Starting... '+caminho_do_arquivo
                 stdout = ''
 
@@ -160,7 +128,7 @@ class ExtracaoConteudoArquivo
                   else
                     str_error << " Tiff não gerado"
                   end
-                  str_error << " | curl -T #{caminho_do_arquivo_tiff} #{server}/tika  --header \"Content-type: image/tiff\" --header \"X-Tika-OCRLanguage: por\" --header \"X-Tika-OCRTimeout: 1800\" || IdObjTram: #{id_objeto_tramitacao}"
+                  str_error << " | curl -T #{caminho_do_arquivo_tiff} #{server}/tika  --header \"Content-type: image/tiff\" --header \"X-Tika-OCRLanguage: por\" --header \"X-Tika-OCRTimeout: 1800\" || IdObjTram: "
 
                   `rm -f #{caminho_do_arquivo_tiff}`
                   `rm -f #{caminho_do_arquivo_tmp}`
@@ -183,61 +151,29 @@ class ExtracaoConteudoArquivo
                 # conteudo_do_arquivo = conteudo_do_arquivo.gsub(/\"/, '')
                 # conteudo_do_arquivo = conteudo_do_arquivo.gsub(/\\/, '')
 
-                #conteudoBase64 = Base64.encode64(conteudo_do_arquivo)
-                unless arquivo.arquivo_conteudo.nil?
-                  arquivo.arquivo_conteudo.update_attribute(:conteudo, conteudo_do_arquivo)
-                  puts "Conteúdo de arquivo #{arquivo.id} atualizado no banco de dados."
-                else
-                  arquivo.create_arquivo_conteudo(:conteudo => conteudo_do_arquivo)
-                  puts "Conteúdo de arquivo #{arquivo.id} inserido no banco de dados."
-                end
+                conteudoBase64 = Base64.encode64(conteudo_do_arquivo)
 
-                if conteudo_do_arquivo.present?
-                  Documento::Arquivo.update_all({ :processado => true }, { :id => arquivo.id })
-                else
-                  raise "Falha ao processar o arquivo: #{arquivo.id} => #{caminho_do_arquivo}"
-                end
 
               rescue Exception => e
                 `rm -f #{caminho_do_arquivo_tiff}`
                 `rm -f #{caminho_do_arquivo_tmp}`
 
-                puts "***** Erro ao extrair conteúdo de arquivo #{arquivo.id} *****"
+                puts "***** Erro ao extrair conteúdo de arquivo #{caminho_arquivo} *****"
                 puts e.message
                 raise e
               end
 
-          else
-            if !File.exist?(arquivo.caminho_arquivo)
-              puts "Arquivo inexistente: #{arquivo.caminho_arquivo}"
-              # raise "Arquivo inexistente: #{arquivo.caminho_arquivo}"
-            end
-            if arquivo.processado && !obj.nil?
-              puts "Arquivo (#{arquivo.id}), autos: #{obj.nr_objeto_tramitacao} já processado: #{arquivo.caminho_arquivo}"
-            end
-          end
+
+
+
           if !caminho_do_arquivo_tiff.empty?
             `rm -f #{caminho_do_arquivo_tiff}`
           end
-        end
-        if (obj.categoria_id != Documento::ObjetoTramitacaoCategoria::AUDIENCIA_JUDICIAL.id && obj.categoria_id != Documento::ObjetoTramitacaoCategoria::SESSAO_TRIBUNAL_JURI.id)
-          Workers::IndexacaoMetadadosElasticsearch.enfileirar_indexacao_de_objeto_tramitacao(id_objeto_tramitacao, data_hora)
-        else
-          # Se for objeto tramitação de audiencia ou sessão do juri, solicitar a indexação do objeto associador.
-          id_objeto_tramitacao = obj.associacao_objeto_associador.objeto_tramitacao_associador_id
-          Workers::IndexacaoMetadadosElasticsearch.enfileirar_indexacao_de_objeto_tramitacao(id_objeto_tramitacao, data_hora)
-        end
-      else
-        raise "O JAR do Tika (#{tika_app_path}) não foi encontrado no diretório 'lib/tika'."
-      end
+
+
     end
 
-
-  end
-
-  def self.enfileirar_extracao_do_conteudo_do_arquivo(id_objeto_tramitacao, data_hora)
-    if Administrativo::ParametroAtena::HABILITA_INDEXACAO.vlr_param? and id_objeto_tramitacao.present? and data_hora.present?
-      Resque.enqueue(Workers::ExtracaoConteudoArquivo, id_objeto_tramitacao, data_hora)
     end
   end
+
 end
