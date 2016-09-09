@@ -3,14 +3,27 @@ class Jornal
 
   CONNECTION = ::Faraday::Connection.new url: 'http://localhost:9200'
 
+  ANALISADOR = '{
+  "index" : {
+    "analysis" : {
+      "analyzer" : {
+        "analisador-jornal": {
+          "type" : "snowball",
+          "language" : "Portuguese"
+        }
+      }
+    }
+   }
+  }'
+
   MAPEAMENTO = '{
       "mappings" : {
           "jornal" : {
             "properties" : {
                 "ano" : {"type" : "integer", "index" : "not_analyzed"},
                 "caminho_arquivo" : {"type": "string", "index": "not_analyzed"},
-                "caminho_thumbnail" : {"type": "string", "index": "not_analyzed"},
-                "conteudo_arquivo" : {"type": "string", "index": "not_analyzed"}
+                "jornal_thumb" : {"type": "string", "index": "not_analyzed"},
+                "conteudo_arquivo" : {"type": "string", "analyzer": "analisador-jornal"}
             }
           }
       }
@@ -26,6 +39,14 @@ class Jornal
   end
 
   def self.mapear
+
+    `curl -XPOST http://localhost:9200/museu_digital/_close`
+
+    `curl -XPUT http://localhost:9200/museu_digital/_settings -d'
+        #{ANALISADOR}'`
+
+    `curl -XPOST http://localhost:9200/museu_digital/_open`
+
     stdout = `curl -XPOST http://localhost:9200/museu_digital -d'
         #{MAPEAMENTO}'`
   end
@@ -34,21 +55,20 @@ class Jornal
     conteudo = Jornal.extrair_conteudo_arquivo caminho_arquivo
     client = Jornal.new
 
-    diretorio_relativo = "arquivos/jornais/thumbs/"
-    nome_thumbnail = File.basename(caminho_arquivo, File.extname(caminho_arquivo)) << "_thumbnail.png"
+    diretorio_relativo = "thumbs/"
+    nome_thumbnail = File.basename(caminho_arquivo, File.extname(caminho_arquivo)) << "_thumb.png"
     caminho_relativo = diretorio_relativo << nome_thumbnail
 
     novo_jornal = {
         ano: ano,
         caminho_arquivo: caminho_arquivo,
-        caminho_thumbnail: caminho_relativo,
+        jornal_thumb: caminho_relativo,
         conteudo: conteudo
     }
 
-    diretorio_absoluto = File.dirname(caminho_arquivo)
-    caminho_completo_absoluto = diretorio_absoluto << nome_thumbnail
+    caminho_absoluto = Rails.root.join('app', 'assets', 'images', 'thumbs') + nome_thumbnail
 
-    stdout_thumbnail = `convert #{caminho_arquivo} -thumbnail 120x90 #{caminho_completo_absoluto}`
+    stdout_thumbnail = `convert #{caminho_arquivo} -thumbnail 120x90 #{caminho_absoluto}`
 
     p client.index index: 'museu_digital', type: 'jornal', body: novo_jornal
 
@@ -78,7 +98,7 @@ class Jornal
   def self.definir_pesquisa termo, options={}
 
     search_definition = {
-        _source: ['ano', 'caminho_thumbnail'],
+        _source: ['ano', 'jornal_thumb'],
         aggs: {},
         highlight: {},
         query: {}
@@ -139,7 +159,9 @@ class Jornal
 
   def self.extrair_conteudo_arquivo caminho_do_arquivo
     #stdout = `java -jar lib/tika/tika-app-1.12.jar -t #{caminho_do_arquivo}`
-    stdout = `tesseract #{caminho_do_arquivo} stdout`
+    #stdout = `tesseract #{caminho_do_arquivo} stdout -l por+eng`
+    stdout_tiff = `convert #{caminho_do_arquivo} -type Grayscale stdout`
+    stdout = `tesseract #{stdout_tiff} stdout -l por+eng`
     conteudo_formatado = stdout.gsub(/[\n\t\r]/m, ' ').gsub(/\s+/m, ' ').strip
     return conteudo_formatado
   end

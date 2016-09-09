@@ -16,7 +16,7 @@
   <br>
 <div class="col sm5">
 <% (0..@jornais['hits'].length-1).each do |i| %>
-      <span><a href="jornals/<%=@jornais['hits'][i]['_id']%>"><img src="<%=@jornais['hits'][i]['_source']['caminho_thumbnail'] %>"></a></span>
+      <span><a href="jornals/<%=@jornais['hits'][i]['_id']%>"><%= image_tag(@jornais['hits'][i]['_source']['jornal_thumb'])%></a></span>
       <span>Ano: <%= @jornais['hits'][i]['_source']['ano']%></span>
       <br>
     <% (0..@jornais['hits'][i]['highlight']['conteudo'].length-1).each do |j| %>
