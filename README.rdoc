@@ -18,6 +18,9 @@ Things you may want to cover:
 * How to run the test suite
 
 * Services (job queues, cache servers, search engines, etc.)
+Baixar elasticsearch 2.4.0 em
+https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/zip/elasticsearch/2.4.0/elasticsearch-2.4.0.zip
+Descompactar e subir com ./bin/elasticsearch, a partir da raiz.
 
 * Deployment instructions
 
