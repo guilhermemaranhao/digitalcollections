@@ -148,12 +148,15 @@ class Jornal
 
   def self.incluir_agregacao search_definition, options
 
-    if options[:ano]
-      termo_ano = {}
-      termo_ano[:term] = {}
-      termo_ano[:term][:ano] = {}
-      termo_ano[:term][:ano] = options[:ano]
-      search_definition[:query][:bool][:must] << termo_ano
+    if options[:anosList]
+      anos = options[:anosList].split(",").map { |s| s.to_i }
+        termo_ano = {}
+        termo_ano[:terms] = {}
+        termo_ano[:terms][:ano] = {}
+        termo_ano[:terms][:ano] = anos
+        search_definition[:query][:bool][:must] << termo_ano
+
+
     end
   end
 

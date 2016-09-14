@@ -21,7 +21,11 @@
   background-color: darken(#dd514c,10%);
   color: #F7F7F7;
 }
-.btn-default:active{
+.btn-default:active {
   background-color: darken(#dd514c,20%);
   color: #F7F7F7;
+}
+
+.btn-atualizar {
+  float: right;
 }
