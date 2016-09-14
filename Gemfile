@@ -30,6 +30,8 @@ gem 'sdoc', '~> 0.4.0', group: :doc
 gem 'unicorn', :platform => :ruby
 gem 'unicorn-rails', :platform => :ruby
 
+gem 'bootstrap-sass', '~> 3.3.6'
+
 gem 'elasticsearch-model'
 
 # Use Capistrano for deployment

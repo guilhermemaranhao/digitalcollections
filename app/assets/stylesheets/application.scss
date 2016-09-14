@@ -1,0 +1,13 @@
+// "bootstrap-sprockets" must be imported before "bootstrap" and "bootstrap/variables"
+@import "bootstrap-sprockets";
+@import "bootstrap";
+
+.navbar{
+  .navbar-brand{
+    color: #dd514c;
+  }
+}
+
+.list-group-item{
+  border: none;
+}

@@ -160,8 +160,8 @@ class Jornal
   def self.extrair_conteudo_arquivo caminho_do_arquivo
     #stdout = `java -jar lib/tika/tika-app-1.12.jar -t #{caminho_do_arquivo}`
     #stdout = `tesseract #{caminho_do_arquivo} stdout -l por+eng`
-    stdout_tiff = `convert #{caminho_do_arquivo} -type Grayscale stdout`
-    stdout = `tesseract #{stdout_tiff} stdout -l por+eng`
+    #stdout_tiff = `convert #{caminho_do_arquivo} -type Grayscale stdout`
+    stdout = `tesseract #{caminho_do_arquivo} stdout -l por+eng`
     conteudo_formatado = stdout.gsub(/[\n\t\r]/m, ' ').gsub(/\s+/m, ' ').strip
     return conteudo_formatado
   end

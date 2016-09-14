@@ -1,31 +1,42 @@
-<h1>Bem-vindo ao Museu Digital</h1>
-<div>
-  <p style="padding-right: 30px; padding-left: 30px">
-<div class="col sm5">
-  Ano
-  <br>
-<% (0..@agregacoes['ano']['buckets'].length-1).each do |i|%>
-  <a href="jornals?termo=<%=@termo%>&ano=<%=@agregacoes['ano']['buckets'][i]['key']%>"><%= @agregacoes['ano']['buckets'][i]['key'] %></a> (<%= @agregacoes['ano']['buckets'][i]['doc_count'] %>)
-      <br>
-<% end %>
-<% if @ano_selecionado %>
-  <a href="jornals?termo=<%=@termo%>">Refazer</a>
-<% end %>
-</div>
-  <br>
-  <br>
-<div class="col sm5">
-<% (0..@jornais['hits'].length-1).each do |i| %>
-      <span><a href="jornals/<%=@jornais['hits'][i]['_id']%>"><%= image_tag(@jornais['hits'][i]['_source']['jornal_thumb'])%></a></span>
-      <span>Ano: <%= @jornais['hits'][i]['_source']['ano']%></span>
-      <br>
-    <% (0..@jornais['hits'][i]['highlight']['conteudo'].length-1).each do |j| %>
-        <%= @jornais['hits'][i]['highlight']['conteudo'][j] %>
+<<% content_for :container do %>
+    <div>
+      <% if @jornais['hits'].length > 0 %>
+      <div class="col-md-3">
+        <div class="row">Ano </div>
 
-        <br>
-        <br>
-    <% end %>
+        <% (0..@agregacoes['ano']['buckets'].length-1).each do |i|%>
+            <div class="row">
+              <a href="jornals?termo=<%=@termo%>&ano=<%=@agregacoes['ano']['buckets'][i]['key']%>"><%= @agregacoes['ano']['buckets'][i]['key'] %></a> (<%= @agregacoes['ano']['buckets'][i]['doc_count'] %>)
+            </div>
+        <% end %>
+        <% if @ano_selecionado %>
+            <a href="jornals?termo=<%=@termo%>">Refazer</a>
+        <% end %>
+      </div>
+      <div class="col-md-9">
+        <% (0..@jornais['hits'].length-1).each do |i| %>
+            <div class="row list-group-item">
+              <div class="col-md-2">
+                <div class="row">
+                <span><a href="jornals/<%=@jornais['hits'][i]['_id']%>"><%= image_tag(@jornais['hits'][i]['_source']['jornal_thumb'], :class => "img-thumbnail")%></a></span>
+                  </div>
+                <div class="row">
+                <span>Ano: <%= @jornais['hits'][i]['_source']['ano']%></span>
+                  </div>
+              </div>
+
+              <div class="col-md-10">
+
+                <% (0..@jornais['hits'][i]['highlight']['conteudo'].length-1).each do |j| %>
+                    <%= @jornais['hits'][i]['highlight']['conteudo'][j] %>
+                <% end %>
+              </div>
+            </div>
+        <% end %>
+      </div>
+      </p>
+          <% else %>
+      <h4>Não foram encontrados resultados com o termo "<b><%= @termo %></b>"</h4>
+          <%end%>
+    </div>
 <% end %>
-</div>
-  </p>
-</div>
