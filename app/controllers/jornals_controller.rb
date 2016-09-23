@@ -1,7 +1,7 @@
 class JornalsController < ApplicationController
 
   def create
-    Jornal.indexar ano, caminho_arquivo
+    Jornal.indexar ano, caminho_arquivo, tipo_extracao
   end
 
   def index
@@ -27,7 +27,9 @@ class JornalsController < ApplicationController
   end
 
   def self.testar_indexacao ano, caminho_arquivo
-    Jornal.indexar ano, caminho_arquivo
+    Jornal.indexar ano, caminho_arquivo, "somente tesseract"
+    Jornal.indexar ano, caminho_arquivo, "convert tesseract"
+    Jornal.indexar ano, caminho_arquivo, "convert cleaner tesseract"
   end
 
 end
