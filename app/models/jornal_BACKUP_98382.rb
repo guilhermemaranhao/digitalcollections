@@ -176,7 +176,7 @@ class Jornal
     end
   end
 
-<<<<<<< .merge_file_kbiV9Q
+<<<<<<< HEAD
   def self.extrair_conteudo_arquivo_somente_tesseract caminho_do_arquivo
 
     stdout = `tesseract #{caminho_do_arquivo} stdout -l por+eng`
@@ -211,7 +211,7 @@ class Jornal
     #stdout = `tesseract #{caminho_do_arquivo} stdout -l por+eng`
     #stdout_tiff = `convert #{caminho_do_arquivo} -type Grayscale stdout`
     stdout = `tesseract #{caminho_do_arquivo} stdout -l por+eng`
->>>>>>> .merge_file_6snhi1
+>>>>>>> 6d5db126740ab1578a40b86df1181347d01a1b93
     conteudo_formatado = stdout.gsub(/[\n\t\r]/m, ' ').gsub(/\s+/m, ' ').strip
     return conteudo_formatado
   end

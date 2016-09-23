@@ -8,8 +8,8 @@ class JornalsController < ApplicationController
     @termo=params[:termo]
     parametros={}
     @ano_selecionado=false
-    if params[:ano]
-      parametros[:ano] = params[:ano]
+    if params[:anosList]
+      parametros[:anosList] = params[:anosList]
       @ano_selecionado=true
     end
     resultado = JSON.parse(Jornal.pesquisar @termo, parametros)

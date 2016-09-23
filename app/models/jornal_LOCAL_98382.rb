@@ -164,19 +164,15 @@ class Jornal
 
   def self.incluir_agregacao search_definition, options
 
-    if options[:anosList]
-      anos = options[:anosList].split(",").map { |s| s.to_i }
-        termo_ano = {}
-        termo_ano[:terms] = {}
-        termo_ano[:terms][:ano] = {}
-        termo_ano[:terms][:ano] = anos
-        search_definition[:query][:bool][:must] << termo_ano
-
-
+    if options[:ano]
+      termo_ano = {}
+      termo_ano[:term] = {}
+      termo_ano[:term][:ano] = {}
+      termo_ano[:term][:ano] = options[:ano]
+      search_definition[:query][:bool][:must] << termo_ano
     end
   end
 
-<<<<<<< .merge_file_kbiV9Q
   def self.extrair_conteudo_arquivo_somente_tesseract caminho_do_arquivo
 
     stdout = `tesseract #{caminho_do_arquivo} stdout -l por+eng`
@@ -205,13 +201,6 @@ class Jornal
     `#{cleaner} -u -T -p 10 #{caminho_do_arquivo_tiff} #{caminho_do_arquivo_tiff_clean}`
 
     stdout = `tesseract #{caminho_do_arquivo_tiff_clean} stdout -l por+eng`
-=======
-  def self.extrair_conteudo_arquivo caminho_do_arquivo
-    #stdout = `java -jar lib/tika/tika-app-1.12.jar -t #{caminho_do_arquivo}`
-    #stdout = `tesseract #{caminho_do_arquivo} stdout -l por+eng`
-    #stdout_tiff = `convert #{caminho_do_arquivo} -type Grayscale stdout`
-    stdout = `tesseract #{caminho_do_arquivo} stdout -l por+eng`
->>>>>>> .merge_file_6snhi1
     conteudo_formatado = stdout.gsub(/[\n\t\r]/m, ' ').gsub(/\s+/m, ' ').strip
     return conteudo_formatado
   end

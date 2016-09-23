@@ -1,0 +1,31 @@
+// "bootstrap-sprockets" must be imported before "bootstrap" and "bootstrap/variables"
+@import "bootstrap-sprockets";
+@import "bootstrap";
+
+.navbar{
+  .navbar-brand{
+    color: #dd514c;
+  }
+}
+
+.list-group-item{
+  border: none;
+}
+
+.btn-default{
+  background-color: #dd514c;
+  color: #F7F7F7;
+
+}
+.btn-default:hover {
+  background-color: darken(#dd514c,10%);
+  color: #F7F7F7;
+}
+.btn-default:active {
+  background-color: darken(#dd514c,20%);
+  color: #F7F7F7;
+}
+
+.btn-atualizar {
+  float: right;
+}
