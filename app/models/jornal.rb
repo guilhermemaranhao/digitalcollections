@@ -3,28 +3,32 @@ class Jornal
 
   CONNECTION = ::Faraday::Connection.new url: 'http://localhost:9200'
 
-  ANALISADOR = '{
-  "index" : {
+  MAPEAMENTO = '{
+  "settings": {
+    "number_of_shards" : 1,
     "analysis" : {
       "analyzer" : {
-        "analisador-jornal": {
-          "type" : "snowball",
-          "language" : "Portuguese"
+        "museu_analyzer": {
+          "tokenizer": "standard",
+          "filter": ["lowercase", "asciifolding", "brazilian_stop"]
+        }
+      },
+      "filter": {
+        "brazilian_stop": {
+          "type": "stop",
+          "stopwords": "_brazilian_"
         }
       }
     }
-   }
-  }'
-
-  MAPEAMENTO = '{
-      "mappings" : {
+   },
+  "mappings" : {
           "jornal" : {
             "properties" : {
                 "ano" : {"type" : "integer", "index" : "not_analyzed"},
                 "tipo_extracao" : {"type": "string", "index": "not_analyzed"},
                 "caminho_arquivo" : {"type": "string", "index": "not_analyzed"},
                 "jornal_thumb" : {"type": "string", "index": "not_analyzed"},
-                "conteudo_arquivo" : {"type": "string", "index": "not_analyzed"}
+                "conteudo" : {"type": "string", "index": "analyzed", "analyzer": "museu_analyzer"}
             }
           }
       }
@@ -56,6 +60,8 @@ class Jornal
 
     conteudo = String.new
     case tipo_extracao
+      when "tika"
+        conteudo = Jornal.extrair_tika caminho_arquivo
       when "somente tesseract"
         conteudo = Jornal.extrair_conteudo_arquivo_somente_tesseract caminho_arquivo
       when "convert tesseract"
@@ -153,6 +159,7 @@ class Jornal
             must: [
               {
                   query_string: {
+                      fields: ["conteudo"],
                       query: termo
                   }
               }
@@ -176,7 +183,6 @@ class Jornal
   end
 
   def self.extrair_conteudo_arquivo_somente_tesseract caminho_do_arquivo
-
     stdout = `tesseract #{caminho_do_arquivo} stdout -l por+eng`
     conteudo_formatado = stdout.gsub(/[\n\t\r]/m, ' ').gsub(/\s+/m, ' ').strip
     return conteudo_formatado
@@ -203,6 +209,12 @@ class Jornal
     `#{cleaner} -u -T -p 10 #{caminho_do_arquivo_tiff} #{caminho_do_arquivo_tiff_clean}`
 
     stdout = `tesseract #{caminho_do_arquivo_tiff_clean} stdout -l por+eng`
+    conteudo_formatado = stdout.gsub(/[\n\t\r]/m, ' ').gsub(/\s+/m, ' ').strip
+    return conteudo_formatado
+  end
+
+  def self.extrair_tika caminho_arquivo
+    stdout = `java -jar lib/tika/tika-app-1.12.jar #{caminho_arquivo}`
     conteudo_formatado = stdout.gsub(/[\n\t\r]/m, ' ').gsub(/\s+/m, ' ').strip
     return conteudo_formatado
   end
