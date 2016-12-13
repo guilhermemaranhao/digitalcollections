@@ -160,7 +160,8 @@ class Jornal
               {
                   query_string: {
                       fields: ["conteudo"],
-                      query: termo
+                      query: termo,
+                      fuzziness: 2
                   }
               }
             ]
@@ -191,7 +192,7 @@ class Jornal
   def self.extrair_conteudo_arquivo_convert_tesseract caminho_do_arquivo
 
     arquivo = caminho_do_arquivo.match(/([a-z0-9]+)\.([a-z0-9]+)$/i)
-    caminho_do_arquivo_tiff = "/tmp/#{arquivo[1]}.tiff"
+    caminho_do_arquivo_tiff = "tmp/#{arquivo[1]}.tiff"
     `convert #{caminho_do_arquivo} -type Grayscale #{caminho_do_arquivo_tiff}`
     stdout = `tesseract #{caminho_do_arquivo_tiff} stdout -l por+eng`
     conteudo_formatado = stdout.gsub(/[\n\t\r]/m, ' ').gsub(/\s+/m, ' ').strip
@@ -201,7 +202,7 @@ class Jornal
   def self.extrair_conteudo_arquivo_convert_cleaner_tesseract caminho_do_arquivo
 
     arquivo = caminho_do_arquivo.match(/([a-z0-9]+)\.([a-z0-9]+)$/i)
-    caminho_do_arquivo_tiff = "/tmp/#{arquivo[1]}.tiff"
+    caminho_do_arquivo_tiff = "tmp/#{arquivo[1]}.tiff"
     `convert #{caminho_do_arquivo} -type Grayscale #{caminho_do_arquivo_tiff}`
 
     cleaner = File.join(Rails.root, 'lib', 'tika', 'textcleaner')
