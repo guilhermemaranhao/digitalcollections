@@ -1,0 +1,15 @@
+default: &default
+  elasticsearch_host: 'http://localhost:9200'
+  nome_indice: '/museu_digital'
+
+development:
+  <<: *default
+
+test: &test
+  <<: *default
+
+cucumber:
+  <<: *test
+
+production:
+  <<: *default

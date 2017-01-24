@@ -22,5 +22,11 @@ module MuseuDigital
 
     # Do not swallow errors in after_commit/after_rollback callbacks.
     config.active_record.raise_in_transactional_callbacks = true
+
+    elasticsearch_config = YAML.load_file("#{Rails.root}/config/elasticsearch/elasticsearch_config.yml")[Rails.env]
+    Elasticsearch::Model.client = Elasticsearch::Client.new host: elasticsearch_config['elasticsearch_host']
+
+    $elasticsearch_analyzer = YAML.load_file("#{Rails.root}/config/elasticsearch/custom_analyzers.json")
+
   end
 end

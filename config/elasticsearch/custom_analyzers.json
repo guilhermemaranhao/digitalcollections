@@ -1,0 +1,30 @@
+{
+"settings": {
+"number_of_shards" : 1,
+"analysis" : {
+"analyzer" : {
+"museu_analyzer": {
+"tokenizer": "standard",
+"filter": ["lowercase", "asciifolding", "brazilian_stop"]
+}
+},
+"filter": {
+"brazilian_stop": {
+"type": "stop",
+"stopwords": "_brazilian_"
+}
+}
+}
+},
+"mappings" : {
+"jornal" : {
+"properties" : {
+"ano" : {"type" : "integer", "index" : "not_analyzed"},
+"tipo_extracao" : {"type": "string", "index": "not_analyzed"},
+"caminho_arquivo" : {"type": "string", "index": "not_analyzed"},
+"jornal_thumb" : {"type": "string", "index": "not_analyzed"},
+"conteudo" : {"type": "string", "index": "analyzed", "analyzer": "museu_analyzer"}
+}
+}
+}
+}

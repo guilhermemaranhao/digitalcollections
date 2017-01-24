@@ -3,37 +3,6 @@ class Jornal
 
   CONNECTION = ::Faraday::Connection.new url: 'http://localhost:9200'
 
-  MAPEAMENTO = '{
-  "settings": {
-    "number_of_shards" : 1,
-    "analysis" : {
-      "analyzer" : {
-        "museu_analyzer": {
-          "tokenizer": "standard",
-          "filter": ["lowercase", "asciifolding", "brazilian_stop"]
-        }
-      },
-      "filter": {
-        "brazilian_stop": {
-          "type": "stop",
-          "stopwords": "_brazilian_"
-        }
-      }
-    }
-   },
-  "mappings" : {
-          "jornal" : {
-            "properties" : {
-                "ano" : {"type" : "integer", "index" : "not_analyzed"},
-                "tipo_extracao" : {"type": "string", "index": "not_analyzed"},
-                "caminho_arquivo" : {"type": "string", "index": "not_analyzed"},
-                "jornal_thumb" : {"type": "string", "index": "not_analyzed"},
-                "conteudo" : {"type": "string", "index": "analyzed", "analyzer": "museu_analyzer"}
-            }
-          }
-      }
-  }'
-
   def perform_request method, path, params, body
     puts "--> #{method.upcase} #{path} #{params} #{body}"
 
@@ -45,15 +14,15 @@ class Jornal
 
   def self.mapear
 
-    # `curl -XPOST http://localhost:9200/museu_digital/_close`
-    #
-    # `curl -XPUT http://localhost:9200/museu_digital/_settings -d'
-    #     #{ANALISADOR}'`
-    #
-    # `curl -XPOST http://localhost:9200/museu_digital/_open`
+    uri = URI(Rails.configuration.elasticsearch_configuracoes.host + Rails.configuration.elasticsearch_configuracoes.nome_indice)
+    req_put = Net::HTTP::Put.new(uri)
+    req_put.content_type = 'application/json'
+    req_put.body = $elasticsearch_analyzer.to_json
 
-    stdout = `curl -XPOST http://localhost:9200/museu_digital -d'
-        #{MAPEAMENTO}'`
+    res = Net::HTTP.start(uri.host, uri.port) do |http|
+      http.request(req_put)
+    end
+
   end
 
   def self.indexar ano, caminho_arquivo, tipo_extracao

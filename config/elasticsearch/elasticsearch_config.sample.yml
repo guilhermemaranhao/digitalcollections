@@ -1,0 +1,14 @@
+default: &default
+  elasticsearch_host: http://localhost:9200
+
+development:
+  <<: *default
+
+test: &test
+  <<: *default
+
+cucumber:
+  <<: *test
+
+production:
+  <<: *default
