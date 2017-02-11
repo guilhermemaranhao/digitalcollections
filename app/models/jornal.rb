@@ -50,7 +50,7 @@ class Jornal
         ano: ano,
         tipo_extracao: tipo_extracao,
         caminho_arquivo: caminho_arquivo,
-        jornal_thumb: caminho_relativo,
+        caminho_thumb: caminho_relativo,
         conteudo: conteudo
     }
 
@@ -58,19 +58,19 @@ class Jornal
 
     stdout_thumbnail = `convert #{caminho_arquivo} -thumbnail 120x90 #{caminho_absoluto}`
 
-    p client.index index: 'museu_digital', type: 'jornal', body: novo_jornal
+    p client.index index: 'digital_collections', type: 'jornal', body: novo_jornal
 
   end
 
   def self.pesquisar termo, options={}
     query = Jornal.definir_pesquisa termo, options
     client = Jornal.new
-    p client.search index: 'museu_digital', body: query
+    p client.search index: 'digital_collections', body: query
   end
 
   def self.pesquisar_jornal id
 
-    url = "http://localhost:9200/museu_digital/jornal/#{id}"
+    url = "http://localhost:9200/digital_collections/jornal/#{id}"
 
     search_definition = {
         _source: ['caminho_arquivo'],
@@ -80,7 +80,7 @@ class Jornal
     }
 
     client = Jornal.new
-    p client.search index: 'museu_digital', body: search_definition
+    p client.search index: 'digital_collections', body: search_definition
   end
 
   private
@@ -88,7 +88,7 @@ class Jornal
   def self.definir_pesquisa termo, options={}
 
     search_definition = {
-        _source: ['ano', 'jornal_thumb'],
+        _source: ['ano', 'caminho_thumb'],
         aggs: {},
         highlight: {},
         query: {}

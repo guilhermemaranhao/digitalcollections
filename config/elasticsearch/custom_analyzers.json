@@ -6,10 +6,6 @@
         "collection_analyzer": {
           "tokenizer": "standard",
           "filter": ["lowercase", "asciifolding", "brazilian_stop"]
-        },
-        "collection_stopword_analyzer":{
-          "tokenizer": "standard",
-          "filter": ["lowercase", "asciifolding"]
         }
       },
       "filter": {
@@ -21,13 +17,19 @@
     }
   },
   "mappings" : {
+    "keyword": {
+      "properties": {
+        "name": {"type": "text", "analyzer": "collection_analyzer" }
+      }
+    },
     "journal" : {
       "properties" : {
-        "ano" : {"type" : "integer", "index" : "not_analyzed"},
-        "tipo_extracao" : {"type": "string", "index": "not_analyzed"},
-        "caminho_arquivo" : {"type": "string", "index": "not_analyzed"},
-        "jornal_thumb" : {"type": "string", "index": "not_analyzed"},
-        "conteudo" : {"type": "string", "index": "analyzed", "analyzer": "collection_stopword_analyzer", "search_analyzer": "collection_analyzer", "search_quote_analyzer": "collection_stopword_analyzer"}
+        "ano" : {"type" : "integer"},
+        "keywords": {"type": "text", "analyzer": "collection_analyzer", "fields": {"raw": {"type": "keyword"}}},
+        "conteudo" : {"type": "text", "index_options": "offsets", "analyzer": "collection_analyzer"},
+        "tipo_extracao" : {"type": "keyword"},
+        "caminho_arquivo" : {"type": "keyword"},
+        "caminho_thumb" : {"type": "keyword"}
       }
     }
   }
