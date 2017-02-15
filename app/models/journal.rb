@@ -1,5 +1,7 @@
-class Jornal
+class Journal
   include Elasticsearch::API
+
+  LISTA_ANOS = [1935, 1950, 1948, 1964, 1970, 1972]
 
   CONNECTION = ::Faraday::Connection.new url: 'http://localhost:9200'
 
@@ -23,24 +25,26 @@ class Jornal
       http.request(req_put)
     end
 
+    p res
+
   end
 
-  def self.indexar ano, caminho_arquivo, tipo_extracao
+  def self.indexar ano, caminho_arquivo, tipo_extracao, palavras
 
     conteudo = String.new
     case tipo_extracao
       when "tika"
-        conteudo = Jornal.extrair_tika caminho_arquivo
+        conteudo = Journal.extrair_tika caminho_arquivo
       when "somente tesseract"
-        conteudo = Jornal.extrair_conteudo_arquivo_somente_tesseract caminho_arquivo
+        conteudo = Journal.extrair_conteudo_arquivo_somente_tesseract caminho_arquivo
       when "convert tesseract"
-        conteudo = Jornal.extrair_conteudo_arquivo_convert_tesseract caminho_arquivo
+        conteudo = Journal.extrair_conteudo_arquivo_convert_tesseract caminho_arquivo
       when "convert cleaner tesseract"
-        conteudo = Jornal.extrair_conteudo_arquivo_convert_cleaner_tesseract caminho_arquivo
+        conteudo = Journal.extrair_conteudo_arquivo_convert_cleaner_tesseract caminho_arquivo
     end
 
     #conteudo = ExtracaoConteudoArquivo.extrair caminho_arquivo
-    client = Jornal.new
+    client = Journal.new
 
     diretorio_relativo = "thumbs/"
     nome_thumbnail = File.basename(caminho_arquivo, File.extname(caminho_arquivo)) << "_thumb.png"
@@ -48,6 +52,7 @@ class Jornal
 
     novo_jornal = {
         ano: ano,
+        keywords: palavras,
         tipo_extracao: tipo_extracao,
         caminho_arquivo: caminho_arquivo,
         caminho_thumb: caminho_relativo,
@@ -58,14 +63,14 @@ class Jornal
 
     stdout_thumbnail = `convert #{caminho_arquivo} -thumbnail 120x90 #{caminho_absoluto}`
 
-    p client.index index: 'digital_collections', type: 'jornal', body: novo_jornal
+    p client.index index: 'digital_collections', type: 'journal', body: novo_jornal
 
   end
 
   def self.pesquisar termo, options={}
-    query = Jornal.definir_pesquisa termo, options
-    client = Jornal.new
-    p client.search index: 'digital_collections', body: query
+    query = Journal.definir_pesquisa termo, options
+    client = Journal.new
+    p client.search index: 'digital_collections', type: 'journal', body: query
   end
 
   def self.pesquisar_jornal id
@@ -79,8 +84,8 @@ class Jornal
         }
     }
 
-    client = Jornal.new
-    p client.search index: 'digital_collections', body: search_definition
+    client = Journal.new
+    p client.search index: 'digital_collections', type: 'journal', body: search_definition
   end
 
   private
@@ -105,7 +110,8 @@ class Jornal
 
   def self.definir_clausula_aggregation
     aggregation = {
-      ano: { terms: {field: 'ano'}}
+      ano: { terms: {field: 'ano'}},
+      keywords: { terms: {field: 'keywords.raw'}}
     }
   end
 
@@ -117,7 +123,8 @@ class Jornal
         number_of_fragments: 3,
         fields: {
             ano: { require_field_match: false },
-            conteudo: { require_field_match: false }
+            conteudo: { require_field_match: false },
+            keywords: { require_field_match: false }
         }
     }
   end
@@ -127,8 +134,8 @@ class Jornal
         bool: {
             must: [
               {
-                  query_string: {
-                      fields: ["conteudo"],
+                  multi_match: {
+                      fields: ["keywords", "conteudo"],
                       query: termo,
                       fuzziness: 2
                   }

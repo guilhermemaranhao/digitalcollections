@@ -19,7 +19,7 @@
   "mappings" : {
     "keyword": {
       "properties": {
-        "name": {"type": "text", "analyzer": "collection_analyzer" }
+        "name": {"type": "completion", "analyzer": "collection_analyzer", "preserve_position_increments": true }
       }
     },
     "journal" : {

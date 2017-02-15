@@ -10,7 +10,7 @@ Rails.application.routes.draw do
 
   scope :api do
     scope :v1 do
-      resources :jornals
+      resources :journals
 
       # Utiliza-se resource no singular para mapear 'recursos singleton', em que não existem ações index para ele.
       # No caso, só faz sentido existir uma confirmação somente.
