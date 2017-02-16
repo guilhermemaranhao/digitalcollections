@@ -1,5 +1,5 @@
 default: &default
-  elasticsearch_host: http://localhost:9200
+  elasticsearch_host: 'http://localhost:9200'
   nome_indice: '/digital_collections'
 
 development:
