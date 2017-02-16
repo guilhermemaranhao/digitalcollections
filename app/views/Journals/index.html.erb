@@ -1,33 +1,39 @@
-<<% content_for :container do %>
+<% content_for :container do %>
     <div>
       <div class="row">
         <a class="btn btn-primary btn-atualizar" type="button" onclick="atualizarPesquisa()">Atualizar</a>
       </div>
       <% if @jornais && @jornais['hits'].length > 0 %>
       <div class="col-md-3">
-        <div class="row">Ano </div>
-
-        <% (0..@agregacoes['ano']['buckets'].length-1).each do |i|%>
-            <div class="row">
-              <a class="link-ano" id="link-ano-<%=@agregacoes['ano']['buckets'][i]['key']%>" onclick="alterarFiltros(<%=@agregacoes['ano']['buckets'][i]['key']%>)">
-                <%= @agregacoes['ano']['buckets'][i]['key'] %></a>
-              (<%= @agregacoes['ano']['buckets'][i]['doc_count'] %>)
+        <div class="list-group">
+          <div class="list-group-item">
+            <div class="row">Year</div>
+            <% (0..@agregacoes['ano']['buckets'].length-1).each do |i|%>
+                <div class="row">
+                  <a class="link-ano" id="link-ano-<%=@agregacoes['ano']['buckets'][i]['key']%>" onclick="alterarFiltrosAno(<%=@agregacoes['ano']['buckets'][i]['key']%>)">
+                    <%= @agregacoes['ano']['buckets'][i]['key'] %></a>
+                  (<%= @agregacoes['ano']['buckets'][i]['doc_count'] %>)
+                </div>
+            <% end %>
+            <% if @ano_selecionado %>
+                <a href="journals?termo=<%=@termo%>">Refazer</a>
+            <% end %>
+          </div>
+          <div class="list-group-item">
+            <div class="row">Keyword</div>
+            <% (0..@agregacoes['keywords']['buckets'].length-1).each do |i|%>
+                <div class="row">
+                  <a class="link-keyword" id="link-keyword-<%=@agregacoes['keywords']['buckets'][i]['key'].gsub(' ','_')%>" onclick="alterarFiltrosKeyword('<%=@agregacoes['keywords']['buckets'][i]['key'].gsub(' ','_')%>')">
+                    <%= @agregacoes['keywords']['buckets'][i]['key'] %></a>
+                  (<%= @agregacoes['keywords']['buckets'][i]['doc_count'] %>)
+                </div>
+            <% end %>
             </div>
-        <% end %>
-        <% (0..@agregacoes['keywords']['buckets'].length-1).each do |i|%>
-            <div class="row">
-              <a class="link-ano" id="link-ano-<%=@agregacoes['keywords']['buckets'][i]['key']%>" onclick="alterarFiltros(<%=@agregacoes['keywords']['buckets'][i]['key']%>)">
-                <%= @agregacoes['keywords']['buckets'][i]['key'] %></a>
-              (<%= @agregacoes['keywords']['buckets'][i]['doc_count'] %>)
-            </div>
-        <% end %>
-        <% if @ano_selecionado %>
-            <a href="journals?termo=<%=@termo%>">Refazer</a>
-        <% end %>
+          </div>
       </div>
-      <div class="col-md-9">
+      <div class="col-md-9 list-group journal">
         <% (0..@jornais['hits'].length-1).each do |i| %>
-            <div class="row list-group-item jornal-ano-<%=@jornais['hits'][i]['_source']['ano']%>">
+            <div class="row list-group-item jornal-ano-<%=@jornais['hits'][i]['_source']['ano']%> <%= @jornais['hits'][i]['_source']['keywords'].map{|k| k.gsub(' ','_')}.join(' ') %>">
               <div class="col-md-2">
                 <div class="row">
                 <span><a href="journals/<%=@jornais['hits'][i]['_id']%>"><%= image_tag(@jornais['hits'][i]['_source']['caminho_thumb'], :class => "img-thumbnail")%></a></span>
@@ -55,14 +61,15 @@
     </div>
 
     <script type="application/javascript">
-      var anosList = new Array();
+        var anosList = new Array();
+        var keywordList = new Array();
       var precisaAtualizar = false;
 
-      function alterarFiltros(ano){
+      function alterarFiltrosAno(ano){
           if(anosList.length == 0){
               $('.link-ano').css('text-decoration','line-through');
               $('.link-ano').css('opacity','0.4');
-              $('.list-group-item').css('display','none');
+              $('.journal > .list-group-item').css('display','none');
               anosList.push(ano);
               $('#link-ano-'+ano).css('text-decoration','none');
               $('#link-ano-'+ano).css('opacity','1.0');
@@ -86,9 +93,54 @@
 
           precisaAtualizar = true;
       };
+
+      function alterarFiltrosKeyword(keyword){
+
+          var common = $.grep(keywordList, function(element) {
+              return $.inArray(element, $('.'+keyword).attr('class').split(' ') ) == -1;
+          });
+
+          console.log(common);
+          console.log(common.length);
+
+
+          if(keywordList.length == 0){
+              $('.link-keyword').css('text-decoration','line-through');
+              $('.link-keyword').css('opacity','0.4');
+              $('.journal > .list-group-item').css('display','none');
+              keywordList.push(keyword);
+              $('#link-keyword-'+keyword).css('text-decoration','none');
+              $('#link-keyword-'+keyword).css('opacity','1.0');
+              $('.'+keyword).css('display','block');
+          }
+          else{
+              itemIndex = $.inArray( keyword, keywordList);
+              if(itemIndex == -1) {
+                  keywordList.push(keyword);
+                  console.log('#link-keyword-'+keyword);
+                  $('#link-keyword-'+keyword).css('text-decoration','none');
+                  $('#link-keyword-'+keyword).css('opacity','1.0');
+                  $('.'+keyword).css('display','block');
+              }else{
+                  keywordList.splice(itemIndex,1);
+                  $('#link-keyword-'+keyword).css('text-decoration','line-through');
+                  $('#link-keyword-'+keyword).css('opacity','0.4');
+
+                  if(common.length == 0){
+                      $('.'+keyword).css('display','none');
+                  }
+
+
+              }
+          }
+
+          console.log(keywordList);
+
+          precisaAtualizar = true;
+      };
             function  atualizarPesquisa(){
                 var path = '<%= journals_path %>';
-                Turbolinks.visit( path+'?termo=<%=@termo%>&anosList=' + anosList);
+                Turbolinks.visit( path+'?termo=<%=@termo%>&anosList=' + anosList + '&keywordList=' + keywordList);
             }
 
 
