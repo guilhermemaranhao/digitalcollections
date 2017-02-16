@@ -1,3 +1,4 @@
 development:
   java_home: '/usr/bin/java'
   http_proxy: 'http://localhost:8888/'
+  files_path: '/Users/pedrorcagarcia/Development/digitalcollections/arquivos'
