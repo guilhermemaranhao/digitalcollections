@@ -3,7 +3,7 @@ class Journal
 
   LISTA_ANOS = [1935, 1950, 1948, 1964, 1970, 1972]
 
-  CONNECTION = ::Faraday::Connection.new url: 'http://localhost:9200'
+  CONNECTION = ::Faraday::Connection.new url: $elasticsearch_host
 
   def perform_request method, path, params, body
     puts "--> #{method.upcase} #{path} #{params} #{body}"
@@ -137,7 +137,7 @@ class Journal
                   multi_match: {
                       fields: ["keywords", "conteudo"],
                       query: termo,
-                      fuzziness: 2
+                      fuzziness: 1
                   }
               }
             ]

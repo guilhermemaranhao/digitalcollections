@@ -15,14 +15,6 @@ class Keyword
                            {'Content-Type' => 'application/json'}
   end
 
-  def pesquisar_por_parte termo
-
-    # search_definition = {
-    #     query: definir_query termo
-    # }
-
-  end
-
   def self.indexar word
 
     new_indexed_keyword = {
@@ -33,15 +25,31 @@ class Keyword
     p client.index index: 'digital_collections', type: 'keyword', body: new_indexed_keyword
   end
 
+
+  def self.pesquisar_por_parte termo
+
+    search_definition = {
+        suggest: {}
+    }
+    search_definition[:suggest] = definir_suggestion termo
+
+    client = Journal.new
+    return client.search index: 'digital_collections', type: 'keyword', body: search_definition
+
+  end
+
   private
 
-  def definir_query termo
+  def self.definir_suggestion termo
 
-    # query = {
-    #     match: {
-    #
-    #     }
-    # }
+    query = {
+        "journal-keyword": {
+            "prefix": termo,
+            "completion": {
+            "field": "name"
+            }
+        }
+    }
 
   end
 
