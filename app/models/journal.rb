@@ -93,7 +93,7 @@ class Journal
   def self.definir_pesquisa termo, options={}
 
     search_definition = {
-        _source: ['ano', 'caminho_thumb'],
+        _source: ['ano','keywords', 'caminho_thumb'],
         aggs: {},
         highlight: {},
         query: {}

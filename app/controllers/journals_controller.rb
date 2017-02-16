@@ -37,7 +37,7 @@ class JournalsController < ApplicationController
     Dir.foreach('arquivos/jornais') do |nome_arquivo|
       next if nome_arquivo == '.' or nome_arquivo == '..' or nome_arquivo == '.DS_Store'
       # do work on real items
-      caminho_arquivo = '/Users/guilhermemaranhao/Projetos/ruby/museu_digital/app/museu_digital/arquivos/jornais/' + nome_arquivo
+      caminho_arquivo = $files_path + '/jornais/' + nome_arquivo
 
       lista_palavras_jornal = JournalsController.obtem_palavras_chave
       ano = JournalsController.obtem_ano
@@ -50,7 +50,7 @@ class JournalsController < ApplicationController
     Dir.foreach('arquivos/revistas') do |nome_arquivo|
       next if nome_arquivo == '.' or nome_arquivo == '..'
       # do work on real items
-      caminho_arquivo = '/Users/guilhermemaranhao/Projetos/ruby/museu_digital/app/museu_digital/arquivos/revistas/' + nome_arquivo
+      caminho_arquivo = $files_path + '/revistas/' + nome_arquivo
 
       lista_palavras_revista = JournalsController.obtem_palavras_chave
       ano = JournalsController.obtem_ano

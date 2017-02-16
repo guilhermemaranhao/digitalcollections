@@ -25,9 +25,10 @@ module DigitalCollections
     config.active_record.raise_in_transactional_callbacks = true
 
     elasticsearch_config = YAML.load_file("#{Rails.root}/config/elasticsearch/elasticsearch_config.yml")[Rails.env]
+    config = YAML.load_file("#{Rails.root}/config/config.yml")[Rails.env]
     Elasticsearch::Model.client = Elasticsearch::Client.new host: elasticsearch_config['elasticsearch_host']
     $elasticsearch_host = elasticsearch_config['elasticsearch_host']
-
+    $files_path = config['files_path']
     $elasticsearch_analyzer = YAML.load_file("#{Rails.root}/config/elasticsearch/custom_analyzers.json")
 
   end
